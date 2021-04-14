@@ -1,11 +1,14 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
+app.use(morgan("dev"));
 
 const bodyParser = require("body-parser");
 app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -17,7 +20,7 @@ const generateRandomString = () =>  {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -59,6 +62,21 @@ app.post("/urls", (req, res) => {
   urlDatabase[tinyString] = longString;
   res.statusCode = 200;
   res.redirect(`/urls/${tinyString}`);         // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect("/");
+});
+
+app.post("/urls/:shortURL/edit", (req, res) => {
+  const editUrl = req.params.shortURL;
+  res.redirect(`/urls/${editUrl}`);
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete (urlDatabase[req.params.shortURL]);
+  res.redirect("/urls");
 });
 
 app.get(`/urls/:shortURL`, (req, res) => {
