@@ -10,6 +10,9 @@ const bodyParser = require("body-parser");
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({extended: false}));
 
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -22,6 +25,8 @@ const generateRandomString = () =>  {
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
+
+
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -76,6 +81,12 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete (urlDatabase[req.params.shortURL]);
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  // console.log("Username:", req.body.username);
+  res.cookie("username", req.body.username);
   res.redirect("/urls");
 });
 

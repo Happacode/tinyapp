@@ -1,5 +1,5 @@
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark bg-success">
+  <nav class="navbar navbar-expand-md navbar-dark bg-info">
     <a class="navbar-brand" href="/urls">TinyApp</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -10,5 +10,22 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+    <div>
+      <form class="nav-item" action="/login" method="POST">
+        <label for="username" class="nav-item">Username</label>
+        <input type="text" name="username" id="username">
+        <!-- <label for="password">Password</label>
+        <input type="text" name="password" id="password"> -->
+        <!-- <input type="submit" value="Login"> -->
+        <button type="submit" class="btn btn-outline-dark btn-rounded">Login</button>
+      </form>
+    </div>
   </nav>
 </header>
+<!-- In the _header.ejs partial of your app, create a <form> that POSTs to /login.
+  The form should contain:
+  
+  a single text input with name="username"
+  a submit button to submit the form
+  Users will type in any username into this form in order to "sign in" for now.
+  Since the POST route does not exist yet, we expect that submission of the form will result in a server error. -->
