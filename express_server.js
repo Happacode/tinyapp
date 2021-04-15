@@ -13,6 +13,21 @@ app.use(bodyParser.urlencoded({extended: false}));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+// *  User Database Object  *
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "monkey"
+  }
+};
+
+// *  URL Database Object *
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
