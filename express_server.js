@@ -38,6 +38,12 @@ app.get("/_header", (req, res) => {
   res.render("_header", templateVars);
 });
 
+app.get("/register", (req, res) => {
+  const templateUsername = req.cookies["username"];
+  const templateVars = { urls: urlDatabase, username: templateUsername };
+  res.render("register", templateVars);
+});
+
 app.get("/urls", (req, res) => {
   const templateUsername = req.cookies["username"];
   const templateVars = { urls: urlDatabase, username: templateUsername };
