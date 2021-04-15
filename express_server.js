@@ -54,20 +54,32 @@ app.get("/_header", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateUsername = req.cookies["username"];
-  const templateVars = { urls: urlDatabase, username: templateUsername };
+  const userId = req.cookies["user_id"];
+  const templateVars = {
+    userId
+  };
   res.render("register", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  const templateUsername = req.cookies["username"];
-  const templateVars = { urls: urlDatabase, username: templateUsername };
+  const userId = req.cookies["user_id"];
+  const userEmail = users[userId]["email"];
+  const templateVars = {
+    urls: urlDatabase,
+    userEmail,
+    userId
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateUsername = req.cookies["username"];
-  const templateVars = { urls: urlDatabase, username: templateUsername };
+  const userId = req.cookies["user_id"];
+  const userEmail = users[userId]["email"];
+  const templateVars = {
+    urls: urlDatabase,
+    userEmail,
+    userId
+  };
   res.render("urls_new", templateVars);
 });
 
@@ -130,6 +142,15 @@ app.post("/register", (req, res) => {
   let newId = generateRandomString();
   let userEmail = req.body.email;
   let userPassword = req.body.password;
+  // * If the e-mail or password are empty strings, send back a response with the 400 status code
+  if (userEmail === "" || userPassword === "") {
+    return res.status(400).send("Incorrect email or password.");
+  }
+
+  if (userEmailVerify(users, userEmail)) {
+    return res.status(400).send("User already registered.");
+  }
+
   const newUser = {
     id: newId,
     email: userEmail,
@@ -140,6 +161,16 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", newId);
   res.redirect("/urls");
 });
+// email checking global function
+const userEmailVerify = function(users, email) {
+  for (let user in users) {
+    if (users[user]["email"] === email) {
+      return users[user];
+    }
+  }
+  return null;
+};
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
