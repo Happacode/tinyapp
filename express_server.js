@@ -61,6 +61,14 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const templateVars = {
+    userId
+  };
+  res.render("login", templateVars);
+});
+
 app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
   const userEmail = users[userId]["email"];
@@ -127,8 +135,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // console.log("Username:", req.body.username);
-  res.cookie("username", req.body.username);
+  let userEmail = req.body.email;
+  res.cookie("user_id", userEmailVerify(users, userEmail).id);
   res.redirect("/urls");
 });
 
@@ -142,6 +150,7 @@ app.post("/register", (req, res) => {
   let newId = generateRandomString();
   let userEmail = req.body.email;
   let userPassword = req.body.password;
+  // console.log("userVerify", userEmailVerify(users, userEmail).id);
   // * If the e-mail or password are empty strings, send back a response with the 400 status code
   if (userEmail === "" || userPassword === "") {
     return res.status(400).send("Incorrect email or password.");
@@ -161,6 +170,7 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", newId);
   res.redirect("/urls");
 });
+
 // email checking global function
 const userEmailVerify = function(users, email) {
   for (let user in users) {
