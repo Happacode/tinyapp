@@ -111,7 +111,6 @@ app.get("/u/:shortURL", (req, res) => {
 // * Post
 
 app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
   const tinyString = generateRandomString();
   const longString = req.body.longURL;
   urlDatabase[tinyString] = longString;
@@ -136,21 +135,30 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
-  res.cookie("user_id", userEmailVerify(users, userEmail).id);
+  let userVerified = userEmailVerify(users, userEmail);
+  let userPassword = req.body.password;
+  if (!userEmailVerify(users, userEmail)) {
+    return res.status(403).send("Email cannot be found.");
+  }
+  
+  if (!userPasswordVerify(users, userPassword)) {
+    return res.status(403).send("Password is incorrect.");
+  }
+  
+  res.cookie("user_id", userVerified);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  // console.log("Username:", req.body.username);
-  res.clearCookie("username", req.body.username);
-  res.redirect("/urls");
+  res.clearCookie("user_id");
+  res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
   let newId = generateRandomString();
   let userEmail = req.body.email;
   let userPassword = req.body.password;
-  // console.log("userVerify", userEmailVerify(users, userEmail).id);
+  // console.log("userVerify", userEmail, userPassword);
   // * If the e-mail or password are empty strings, send back a response with the 400 status code
   if (userEmail === "" || userPassword === "") {
     return res.status(400).send("Incorrect email or password.");
@@ -175,7 +183,16 @@ app.post("/register", (req, res) => {
 const userEmailVerify = function(users, email) {
   for (let user in users) {
     if (users[user]["email"] === email) {
-      return users[user];
+      return user;
+    }
+  }
+  return null;
+};
+// password checking global function
+const userPasswordVerify = function(users, password) {
+  for (let user in users) {
+    if (users[user]["password"] === password) {
+      return user;
     }
   }
   return null;
