@@ -13,6 +13,12 @@ app.use(bodyParser.urlencoded({extended: false}));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+// *  URL Database Object *
+const urlDatabase = {
+  b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  s9m5xK: { longURL: "http://www.google.com", userID: "userRandomID" }
+};
+
 // *  User Database Object  *
 const users = {
   "userRandomID": {
@@ -27,11 +33,6 @@ const users = {
   }
 };
 
-// *  URL Database Object *
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
 const generateRandomString = () =>  {
   return Math.random().toString(36).substring(2, 8);
@@ -76,6 +77,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
+  if (!userId) {
+    res.redirect("/login");
+  }
   const userEmail = users[userId]["email"];
   const templateVars = {
     urls: urlDatabase,
