@@ -1,6 +1,9 @@
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
+
+const bcrypt = require("bcrypt");
+
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
@@ -163,7 +166,7 @@ app.post("/login", (req, res) => {
     return res.status(403).send("Email cannot be found.");
   }
   
-  if (!userPasswordVerify(users, userPassword)) {
+  if (!userPasswordVerify(users, userEmail, userPassword)) {
     return res.status(403).send("Password is incorrect.");
   }
   
@@ -182,6 +185,7 @@ app.post("/register", (req, res) => {
   let newId = generateRandomString();
   let userEmail = req.body.email;
   let userPassword = req.body.password;
+  
   // console.log("userVerify", userEmail, userPassword);
   // * If the e-mail or password are empty strings, send back a response with the 400 status code
   if (userEmail === "" || userPassword === "") {
@@ -192,10 +196,23 @@ app.post("/register", (req, res) => {
     return res.status(400).send("User already registered.");
   }
 
+  let hashedPassword = bcrypt.hashSync(userPassword, 10);
+  console.log("hashedPassword:", hashedPassword);
+  //  * Compass example
+  // const password = "purple-monkey-dinosaur"; // found in the req.params object
+  // const hashedPassword = bcrypt.hashSync(password, 10);
+  
+  //  * Lecture example
+  // bcrypt.genSalt(10)
+  //   .then((salt) => {
+  //     return bcrypt.hash(userPassword, salt);
+  //   })
+  //   .then((hash) => {})
+
   const newUser = {
     id: newId,
     email: userEmail,
-    password: userPassword
+    password: hashedPassword
   };
   users[newId] = newUser;
   console.log("users:", users);
@@ -213,10 +230,12 @@ const userEmailVerify = function(users, email) {
   return null;
 };
 // password checking global function
-const userPasswordVerify = function(users, password) {
+const userPasswordVerify = function(users, email, password) {
   for (let user in users) {
-    if (users[user]["password"] === password) {
-      return user;
+    if (users[user]["email"] === email) {
+      if (bcrypt.compareSync(password, users[user]["password"])) {
+        return user;
+      }
     }
   }
   return null;
