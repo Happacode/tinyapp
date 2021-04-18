@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
+const {getUserByEmail, userPasswordVerify, generateRandomString, urlsForUser} = require("./helpers");
 
 const bcrypt = require("bcrypt");
 
@@ -13,11 +14,11 @@ const bodyParser = require("body-parser");
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({extended: false}));
 
-const cookieSession = require('cookie-session');
+const cookieSession = require("cookie-session");
 // const cookieParser = require("cookie-parser");
 // app.use(cookieParser());
 app.use(cookieSession({
-  name: 'session',
+  name: "session",
   keys: ["secret", "keys"],
 
   // Cookie Options
@@ -42,22 +43,6 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync("monkey", 10)
   }
-};
-
-const urlsForUser = function(userId) {
-  let userStoredUrls = {};
-
-  for (let key in urlDatabase) {
-    if (userId === urlDatabase[key].userID) {
-      userStoredUrls[key] = { longURL: urlDatabase[key].longURL, userId };
-    }
-  }
-  return userStoredUrls;
-};
-
-
-const generateRandomString = () =>  {
-  return Math.random().toString(36).substring(2, 8);
 };
 
 // * Get
@@ -135,8 +120,6 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect("/login");
   }
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  const shortURL = req.params.shortURL;
-  console.log("longURL", longURL);
   res.redirect(longURL);
 });
 
@@ -176,12 +159,11 @@ app.post("/login", (req, res) => {
   if (!getUserByEmail(users, userEmail)) {
     return res.status(403).send("Email cannot be found.");
   }
-  console.log("Password-Check:", userPassword);
   
   if (!userPasswordVerify(users, userEmail, userPassword)) {
     return res.status(403).send("Password is incorrect.");
   }
-  req.session.user_id = userVerified;
+  req.session["user_id"] = userVerified;
   res.redirect("/urls");
 });
 
@@ -220,30 +202,6 @@ app.post("/register", (req, res) => {
   req.session["user_id"] = newId;
   res.redirect("/urls");
 });
-
-// Helper functions
-
-// email checking global function
-const getUserByEmail = function(users, email) {
-  for (let user in users) {
-    if (users[user]["email"] === email) {
-      return user;
-    }
-  }
-  return null;
-};
-// password checking global function
-const userPasswordVerify = function(users, email, password) {
-  for (let user in users) {
-    if (users[user]["email"] === email) {
-      if (bcrypt.compareSync(password, users[user]["password"])) {
-        return user;
-      }
-    }
-  }
-  return null;
-};
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
