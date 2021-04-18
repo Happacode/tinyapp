@@ -31,7 +31,7 @@ const generateRandomString = () =>  {
 };
 
 // storing secure shorturls for unique user
-const urlsForUser = function(userId) {
+const urlsForUser = function(userId, urlDatabase) {
   let userStoredUrls = {};
 
   for (let key in urlDatabase) {

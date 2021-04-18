@@ -73,7 +73,7 @@ app.get("/login", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
-  const activeUserUrls = urlsForUser(userId);
+  const activeUserUrls = urlsForUser(userId, urlDatabase);
   let userEmail;
   if (userId) {
     userEmail = users[userId]["email"];
