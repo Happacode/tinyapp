@@ -6,11 +6,13 @@ const bcrypt = require('bcrypt');
 // email checking global function
 const getUserByEmail = function(users, email) {
   for (let user in users) {
+    console.log("user:", user);
+    console.log("user:", users[user]["email"]);
     if (users[user]["email"] === email) {
       return user;
     }
   }
-  return null;
+  return undefined;
 };
 
 // password checking global function
