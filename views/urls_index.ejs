@@ -28,7 +28,7 @@
             <td><%= urls[url].longURL %></td>
             <% if (userId) { %>
               <td>
-                <form method="POST" action="/urls/<%= url %>/edit"><button type="submit" class="btn btn-outline-warning btn-rounded">Edit</button>
+                <form method="GET" action="/urls/<%= url %>"><button type="submit" class="btn btn-outline-warning btn-rounded">Edit</button>
                 </form>
               </td>
               <td>

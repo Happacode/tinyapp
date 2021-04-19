@@ -86,7 +86,7 @@ app.get("/urls", (req, res) => {
     userId,
     userEmail
   };
-
+  console.log("UpdatedURL:", activeUserUrls);
   res.render("urls_index", templateVars);
 });
 
@@ -113,9 +113,12 @@ app.get("/urls/:shortURL", (req, res) => {
     res.status(400).res.redirect("/login", templateVars);
   }
   
-  const longURL = urlDatabase[req.params.shortURL].longURL;
+
+  console.log("ShortURL:", req.params.shortURL);
+  console.log("LongURL:", urlDatabase[req.params.shortURL].longURL);
+  const updatedURL = urlDatabase[req.params.shortURL].longURL;
   const userEmail = users[userId]["email"];
-  const templateVars = { shortURL: req.params.shortURL, longURL: longURL, userId, userEmail };
+  const templateVars = { shortURL: req.params.shortURL, longURL: updatedURL, userId, userEmail };
   
   res.render("urls_show", templateVars);
 });
@@ -148,23 +151,24 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${tinyString}`);
 });
 
-app.put("/urls/:shortURL", (req, res) => {
-  let currentUser = users[req.session["user_id"]];
+// app.post("/urls/:shortURL", (req, res) => {
+//   let currentUser = users[req.session["user_id"]];
   
-  if (urlsForUser(urlDatabase, currentUser.id)[req.params.shortURL]) {
-    let newURL = req.body.newURL;
-    //updating new URL to database
-    urlDatabase[req.params.shortURL].longURL = newURL;
-    res.redirect("/urls");
-  }
-});
+//   if (urlsForUser(urlDatabase, currentUser.id)[req.params.shortURL]) {
+//     let newURL = req.body.newURL;
+//     urlDatabase[req.params.shortURL].longURL = newURL;
+//     res.redirect("/urls");
+//   }
+// });
 
-app.post("/urls/:shortURL/edit", (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
   //check if URL belongs to user's list then they can edit
   if (!urlsForUser(req.session["user_id"], urlDatabase[req.params.shortURL])) {
     res.status(400).res.redirect("/login");
   }
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   const editUrl = req.params.shortURL;
+  
   res.redirect(`/urls/${editUrl}`);
 });
 
