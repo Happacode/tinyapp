@@ -46,6 +46,12 @@ const users = {
 // * Route Get
 
 app.get("/", (req, res) => {
+  // const userId = req.session.user_id;
+  
+  // if (!userId) {
+  //   res.redirect("/login");
+  // }
+
   res.redirect("/urls");
 });
 
@@ -73,16 +79,19 @@ app.get("/login", (req, res) => {
 // Only logged in users can view tinyUrls
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
-  const activeUserUrls = urlsForUser(userId, urlDatabase);
-  let userEmail;
   
-  if (!userId) {
-    res.status(400).send("Please login to view URLs.");
+  let userEmail;
+  let urls = urlDatabase;
+
+  if (userId) {
+    userEmail = users[userId]["email"];
+    urls = urlsForUser(userId, urlDatabase);
+    // res.status(400).send("Please login to view URLs.");
   }
   
-  userEmail = users[userId]["email"];
+  
   const templateVars = {
-    urls: activeUserUrls,
+    urls,
     userId,
     userEmail
   };
@@ -109,24 +118,46 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session.user_id;
+  const shortURL = req.params.shortURL;
   
   if (!userId) {
-    res.status(400).send("Email cannot be found.");
+    return res.status(400).redirect("/");
   }
+
+  const myURLs = urlsForUser(userId, urlDatabase);
+  
+  if (!myURLs[shortURL]) {
+    return res.status(400).send("Access denied to edit shortURL.");
+  }
+
   // Only shows Urls for unique user
-  const updatedURL = urlDatabase[req.params.shortURL].longURL;
-  const userEmail = users[userId]["email"];
+  console.log("ShortURL:::", shortURL);
+  console.log("NewShortURL2::", urlDatabase);
+  const urlData = urlDatabase[shortURL];
+  
+  if (!urlData) {
+    return res.status(400).send("Sorry invalid shortURL.");
+  }
+  
+  const updatedURL = urlDatabase[shortURL].longURL;
+  let userEmail;
+
+  if (userId) {
+    userEmail = users[userId]["email"];
+  }
+  
+  
   const templateVars = { shortURL: req.params.shortURL, longURL: updatedURL, userId, userEmail };
   
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const userId = req.session.user_id;
+  // const userId = req.session.user_id;
   
-  if (!userId) {
-    res.status(400).res.redirect("/login");
-  }
+  // if (!userId) {
+  //   res.status(400).res.redirect("/login");
+  // }
   
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
@@ -154,14 +185,31 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:shortURL", (req, res) => {
   //check if URL belongs to user's list then they can update
-  if (!urlsForUser(req.session["user_id"], urlDatabase[req.params.shortURL])) {
-    res.status(400).res.redirect("/login");
-  }
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  const editUrl = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   
-  res.redirect(`/urls/${editUrl}`);
+  if (!req.session['user_id']) {
+    return res.status(400).redirect("/");
+  }
+  const myURLs = urlsForUser(req.session["user_id"], urlDatabase);
+  
+  if (!myURLs[shortURL]) {
+    return res.status(400).send("Access denied to edit shortURL.");
+  }
+
+  urlDatabase[shortURL].longURL = req.body.longURL;
+
+  // if (!urlsForUser(req.session["user_id"], urlDatabase[req.params.shortURL])) {
+  //   res.status(400).res.redirect("/login");
+  // }
+
+  // urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  // const editUrl = req.params.shortURL;
+  
+  res.redirect(`/urls/${shortURL}`);
 });
+
+// const myURLs = urlsForUser("user2RandomID", urlDatabase);
+// console.log("RandomID:******:", myURLs);
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   
@@ -189,7 +237,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/urls");
+  res.redirect("/");
 });
 // registration submission
 app.post("/register", (req, res) => {
