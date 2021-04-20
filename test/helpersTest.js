@@ -23,7 +23,7 @@ describe('getUserByEmail', function() {
   });
 
   it('should return undefined if non-existent email', function() {
-    const user = getUserByEmail(testUsers, "emlovescookies@cookiemonster.com");
+    const user = getUserByEmail(testUsers, "milkshake@example.com");
     const expectedOutput = undefined;
     assert.deepEqual(user, expectedOutput);
   });

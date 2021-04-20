@@ -5,9 +5,9 @@ const bcrypt = require('bcrypt');
 
 // email checking global function
 const getUserByEmail = function(users, email) {
+  
   for (let user in users) {
-    console.log("user:", user);
-    console.log("user:", users[user]["email"]);
+    
     if (users[user]["email"] === email) {
       return user;
     }
@@ -17,8 +17,11 @@ const getUserByEmail = function(users, email) {
 
 // password checking global function
 const userPasswordVerify = function(users, email, password) {
+  
   for (let user in users) {
+    
     if (users[user]["email"] === email) {
+      
       if (bcrypt.compareSync(password, users[user]["password"])) {
         return user;
       }

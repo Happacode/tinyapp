@@ -15,8 +15,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({extended: false}));
 
 const cookieSession = require("cookie-session");
-// const cookieParser = require("cookie-parser");
-// app.use(cookieParser());
 app.use(cookieSession({
   name: "session",
   keys: ["secret", "keys"],
@@ -45,7 +43,7 @@ const users = {
   }
 };
 
-// * Get
+// * Route Get
 
 app.get("/", (req, res) => {
   res.redirect("/urls");
@@ -60,24 +58,26 @@ app.get("/register", (req, res) => {
   const templateVars = {
     userId
   };
+
   res.render("register", templateVars);
 });
-
+// Only registered users can login
 app.get("/login", (req, res) => {
   const userId = req.session.user_id;
   const templateVars = {
     userId
   };
+
   res.render("login", templateVars);
 });
-
+// Only logged in users can view tinyUrls
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
   const activeUserUrls = urlsForUser(userId, urlDatabase);
   let userEmail;
   
   if (!userId) {
-    res.status(400).redirect("/login");
+    res.status(400).send("Please login to view URLs.");
   }
   
   userEmail = users[userId]["email"];
@@ -86,16 +86,17 @@ app.get("/urls", (req, res) => {
     userId,
     userEmail
   };
-  console.log("UpdatedURL:", activeUserUrls);
+
   res.render("urls_index", templateVars);
 });
-
+// Create tinyUrls on url_new page
 app.get("/urls/new", (req, res) => {
   const userId = req.session.user_id;
   
   if (!userId) {
     res.status(400).redirect("/login");
   }
+
   const userEmail = users[userId]["email"];
   const templateVars = {
     urls: urlDatabase,
@@ -110,12 +111,9 @@ app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session.user_id;
   
   if (!userId) {
-    res.status(400).res.redirect("/login", templateVars);
+    res.status(400).send("Email cannot be found.");
   }
-  
-
-  console.log("ShortURL:", req.params.shortURL);
-  console.log("LongURL:", urlDatabase[req.params.shortURL].longURL);
+  // Only shows Urls for unique user
   const updatedURL = urlDatabase[req.params.shortURL].longURL;
   const userEmail = users[userId]["email"];
   const templateVars = { shortURL: req.params.shortURL, longURL: updatedURL, userId, userEmail };
@@ -136,33 +134,26 @@ app.get("/u/:shortURL", (req, res) => {
 
 
 
-// * Post
+// * Post requests
 
 app.post("/urls", (req, res) => {
   const tinyString = generateRandomString();
+  
   if (req.session['user_id']) {
+  // created hard coded "http://" to longURL strings submitted
     let longString = req.body.longURL;
     if (!(longString.startsWith('http://') || longString.startsWith('https://'))) {
       longString = "http://" + longString;
     }
     urlDatabase[tinyString] = {longURL: longString, userID: req.session.user_id};
   }
+
   res.statusCode = 200;
   res.redirect(`/urls/${tinyString}`);
 });
 
-// app.post("/urls/:shortURL", (req, res) => {
-//   let currentUser = users[req.session["user_id"]];
-  
-//   if (urlsForUser(urlDatabase, currentUser.id)[req.params.shortURL]) {
-//     let newURL = req.body.newURL;
-//     urlDatabase[req.params.shortURL].longURL = newURL;
-//     res.redirect("/urls");
-//   }
-// });
-
 app.post("/urls/:shortURL", (req, res) => {
-  //check if URL belongs to user's list then they can edit
+  //check if URL belongs to user's list then they can update
   if (!urlsForUser(req.session["user_id"], urlDatabase[req.params.shortURL])) {
     res.status(400).res.redirect("/login");
   }
@@ -179,7 +170,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
   res.redirect("/urls");
 });
-
+// login submission
 app.post("/login", (req, res) => {
   let userEmail = req.body.email;
   let userVerified = getUserByEmail(users, userEmail);
@@ -197,12 +188,10 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  // let userEmail = req.body.email;
-  // let userVerified = userEmailVerify(users, userEmail);
   req.session = null;
   res.redirect("/urls");
 });
-
+// registration submission
 app.post("/register", (req, res) => {
   let newId = generateRandomString();
   let userEmail = req.body.email;
@@ -215,9 +204,9 @@ app.post("/register", (req, res) => {
   if (getUserByEmail(users, userEmail)) {
     return res.status(400).send("User already registered.");
   }
-
+  // bcrypt used to hash unique user id
   let hashedPassword = bcrypt.hashSync(userPassword, 10);
-  console.log("hashedPassword:", hashedPassword);
+  
 
   const newUser = {
     id: newId,
@@ -226,7 +215,6 @@ app.post("/register", (req, res) => {
   };
 
   users[newId] = newUser;
-  console.log("users:", users);
   req.session["user_id"] = newId;
   res.redirect("/urls");
 });
