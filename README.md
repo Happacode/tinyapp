@@ -4,8 +4,10 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["screenshot description"](#)
-!["screenshot description"](#)
+!["Login page for Tinyapp"](https://github.com/Happacode/tinyapp/blob/master/docs/login-tinyapp.png?raw=true)
+!["MyURLs page for Tinyapp"](https://github.com/Happacode/tinyapp/blob/master/docs/myurl-tinyapp.png?raw=true)
+!["Create a new TinyURL"](https://github.com/Happacode/tinyapp/blob/master/docs/create-tinyapp.png?raw=true)
+!["Update and edit TinyURL"](https://github.com/Happacode/tinyapp/blob/master/docs/update-tinyapp.png?raw=true)
 
 ## Dependencies
 
