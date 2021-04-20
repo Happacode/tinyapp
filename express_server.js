@@ -46,11 +46,11 @@ const users = {
 // * Route Get
 
 app.get("/", (req, res) => {
-  // const userId = req.session.user_id;
+  const userId = req.session.user_id;
   
-  // if (!userId) {
-  //   res.redirect("/login");
-  // }
+  if (!userId) {
+    res.redirect("/login");
+  }
 
   res.redirect("/urls");
 });
@@ -131,8 +131,6 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 
   // Only shows Urls for unique user
-  console.log("ShortURL:::", shortURL);
-  console.log("NewShortURL2::", urlDatabase);
   const urlData = urlDatabase[shortURL];
   
   if (!urlData) {
@@ -153,11 +151,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  // const userId = req.session.user_id;
-  
-  // if (!userId) {
-  //   res.status(400).res.redirect("/login");
-  // }
   
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
@@ -197,19 +190,10 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 
   urlDatabase[shortURL].longURL = req.body.longURL;
-
-  // if (!urlsForUser(req.session["user_id"], urlDatabase[req.params.shortURL])) {
-  //   res.status(400).res.redirect("/login");
-  // }
-
-  // urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  // const editUrl = req.params.shortURL;
   
   res.redirect(`/urls/${shortURL}`);
 });
 
-// const myURLs = urlsForUser("user2RandomID", urlDatabase);
-// console.log("RandomID:******:", myURLs);
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   
