@@ -1,7 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
-const {getUserByEmail, userPasswordVerify, generateRandomString, urlsForUser} = require("./helpers");
+const {getUserByEmail, userPasswordVerify, generateRandomString, urlsForUser, urlDatabase, users} = require("./helpers");
 
 const bcrypt = require("bcrypt");
 
@@ -23,26 +23,6 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
-// *  URL Database Object *
-const urlDatabase = {
-  b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
-  s9m5xK: { longURL: "http://www.google.com", userID: "user2RandomID" }
-};
-
-// *  User Database Object  *
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: bcrypt.hashSync("dinosaur", 10)
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: bcrypt.hashSync("monkey", 10)
-  }
-};
-
 // * Route Get
 
 app.get("/", (req, res) => {
@@ -61,6 +41,11 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/register", (req, res) => {
   const userId = req.session.user_id;
+  
+  if (userId) {
+    return res.redirect("/urls");
+  }
+  
   const templateVars = {
     userId
   };
@@ -70,6 +55,11 @@ app.get("/register", (req, res) => {
 // Only registered users can login
 app.get("/login", (req, res) => {
   const userId = req.session.user_id;
+  
+  if (userId) {
+    return res.redirect("/urls");
+  }
+  
   const templateVars = {
     userId
   };
@@ -79,17 +69,15 @@ app.get("/login", (req, res) => {
 // Only logged in users can view tinyUrls
 app.get("/urls", (req, res) => {
   const userId = req.session.user_id;
-  
   let userEmail;
   let urls = urlDatabase;
 
-  if (userId) {
-    userEmail = users[userId]["email"];
-    urls = urlsForUser(userId, urlDatabase);
-    // res.status(400).send("Please login to view URLs.");
+  if (!userId) {
+    res.status(400).send("Please login to view URLs.");
   }
-  
-  
+  userEmail = users[userId]["email"];
+  urls = urlsForUser(userId, urlDatabase);
+   
   const templateVars = {
     urls,
     userId,
@@ -117,24 +105,24 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userId = req.session.user_id;
-  const shortURL = req.params.shortURL;
-  
-  if (!userId) {
-    return res.status(400).redirect("/");
-  }
-
-  const myURLs = urlsForUser(userId, urlDatabase);
-  
-  if (!myURLs[shortURL]) {
-    return res.status(400).send("Access denied to edit shortURL.");
-  }
-
   // Only shows Urls for unique user
+  const shortURL = req.params.shortURL;
   const urlData = urlDatabase[shortURL];
   
   if (!urlData) {
-    return res.status(400).send("Sorry invalid shortURL.");
+    return res.status(400).send("Sorry, invalid shortURL.");
+  }
+  
+  const userId = req.session.user_id;
+  
+  
+  if (!userId) {
+    return res.status(400).send("Access denied, please login.");
+  }
+
+  const myURLs = urlsForUser(userId, urlDatabase);
+  if (!myURLs[shortURL]) {
+    return res.status(400).send("Access denied to edit shortURL.");
   }
   
   const updatedURL = urlDatabase[shortURL].longURL;
@@ -144,19 +132,14 @@ app.get("/urls/:shortURL", (req, res) => {
     userEmail = users[userId]["email"];
   }
   
-  
   const templateVars = { shortURL: req.params.shortURL, longURL: updatedURL, userId, userEmail };
-  
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
-
-
 
 // * Post requests
 
@@ -190,7 +173,6 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 
   urlDatabase[shortURL].longURL = req.body.longURL;
-  
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -204,7 +186,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 // login submission
 app.post("/login", (req, res) => {
-  let userEmail = req.body.email;
+  const userEmail = req.body.email;
   let userVerified = getUserByEmail(users, userEmail);
   let userPassword = req.body.password;
   
@@ -239,7 +221,6 @@ app.post("/register", (req, res) => {
   // bcrypt used to hash unique user id
   let hashedPassword = bcrypt.hashSync(userPassword, 10);
   
-
   const newUser = {
     id: newId,
     email: userEmail,

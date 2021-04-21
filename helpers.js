@@ -3,11 +3,30 @@
 // require bcrypt for userPasswordVerify() function
 const bcrypt = require('bcrypt');
 
+// *  URL Database Object *
+const urlDatabase = {
+  b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  s9m5xK: { longURL: "http://www.google.com", userID: "user2RandomID" }
+};
+
+// *  User Database Object  *
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: bcrypt.hashSync("dinosaur", 10)
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: bcrypt.hashSync("monkey", 10)
+  }
+};
+
 // email checking global function
 const getUserByEmail = function(users, email) {
   
   for (let user in users) {
-    
     if (users[user]["email"] === email) {
       return user;
     }
@@ -19,9 +38,7 @@ const getUserByEmail = function(users, email) {
 const userPasswordVerify = function(users, email, password) {
   
   for (let user in users) {
-    
     if (users[user]["email"] === email) {
-      
       if (bcrypt.compareSync(password, users[user]["password"])) {
         return user;
       }
@@ -47,4 +64,4 @@ const urlsForUser = function(userId, urlDatabase) {
   return userStoredUrls;
 };
 
-module.exports = { getUserByEmail, userPasswordVerify, generateRandomString, urlsForUser };
+module.exports = { getUserByEmail, userPasswordVerify, generateRandomString, urlsForUser, urlDatabase, users };
